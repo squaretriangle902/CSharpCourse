@@ -4,8 +4,8 @@ namespace Module4
 {
     public static class Task6
     {
-        private static readonly string numberPattern = @"^-?[0-9]+(?:\.[0-9]+)?$";
-        private static readonly string scientificNumberPattern = @"^-?[1-9](?:\.[0-9]+)e-?[0-9]+$";
+        private const string numberPattern = @"^-?[0-9]+(?:\.[0-9]+)?$";
+        private const string scientificNumberPattern = @"^-?[1-9](?:\.[0-9]+)e-?[0-9]+$";
 
         public static void Run()
         {

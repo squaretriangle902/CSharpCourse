@@ -5,7 +5,7 @@ namespace Module4
 {
     public static class Task3
     {
-        private static readonly string datePattern = "(?:[0-2][0-9]|3[01])-(?:0[0-9]|1[0-2])-(?:[0-9][0-9][0-9][0-9])"; 
+        private const string datePattern = "(?:[0-2][0-9]|3[01])-(?:0[0-9]|1[0-2])-(?:[0-9][0-9][0-9][0-9])"; 
 
         public static void Run()
         {

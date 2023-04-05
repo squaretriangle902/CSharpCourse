@@ -5,13 +5,14 @@ namespace Module4
 {
     public static class Task8
     {
+        private const string StringBuilderInLoopAppendTimeElapsedMessage = "String builder append in loop time elapsed: ";
+        private const string StringInLoopAppendTimeElapsedMessage = "String append in loop time elapsed: ";
+
         public static void Run()
         {
             int n = 100000;
-            ConsoleWriteLineTimeSpan(StringBuilderAppendInLoopTimeElapsed(n), 
-                "String builder append in loop time elapsed: ");
-            ConsoleWriteLineTimeSpan(StringAppendInLoopTimeElapsed(n),
-                "String append in loop time elapsed: ");
+            ConsoleWriteLineTimeSpan(StringBuilderAppendInLoopTimeElapsed(n), StringBuilderInLoopAppendTimeElapsedMessage);
+            ConsoleWriteLineTimeSpan(StringAppendInLoopTimeElapsed(n), StringInLoopAppendTimeElapsedMessage);
         }
 
         private static TimeSpan StringBuilderAppendInLoopTimeElapsed(int iterationCount)

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Module4
+﻿namespace Module4
 {
     public static class Task9
     {

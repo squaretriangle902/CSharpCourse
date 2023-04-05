@@ -4,7 +4,7 @@ namespace Module4
 {
     public static class Task4
     {
-        private static readonly string HTLMTagPattern = "<.*?>";
+        private const string HTLMTagPattern = "<.*?>";
 
         public static void Run() 
         {

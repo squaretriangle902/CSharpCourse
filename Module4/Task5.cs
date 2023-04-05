@@ -4,7 +4,7 @@ namespace Module4
 {
     public static class Task5
     {
-        private static readonly string eMailPattern = @"[\w-.]+@[\w-]+.([\w-]+)?.[\w-]{2,6}";
+        private const string eMailPattern = @"[\w-.]+@[\w-]+.([\w-]+)?.[\w-]{2,6}";
 
         public static void Run()
         {

@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-namespace Module4
+﻿namespace Module4
 {
     public static class Task1
     {

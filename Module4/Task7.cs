@@ -4,7 +4,7 @@ namespace Module4
 {
     public static class Task7
     {
-        private static readonly string timePattern = "(?: [0-9]|1[0-9]|2[0-3]):(?:[0-5][0-9])";
+        private const string timePattern = "(?:[0-9]|1[0-9]|2[0-3]):(?:[0-5][0-9])";
 
         public static void Run()
         {
