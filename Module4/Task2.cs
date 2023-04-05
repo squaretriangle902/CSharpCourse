@@ -25,6 +25,5 @@ namespace Module4
             }
             return stringBuilder.ToString();
         }
-
     }
 }
