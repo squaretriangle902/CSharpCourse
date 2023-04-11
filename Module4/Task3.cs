@@ -1,11 +1,12 @@
 ﻿using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Module4
 {
     public static class Task3
     {
-        private const string datePattern = "(?:[0-2][0-9]|3[01])-(?:0[0-9]|1[0-2])-(?:[0-9][0-9][0-9][0-9])"; 
+        private const string datePattern = "(:?0[1-9]|[12][0-9]|3[01])-" +
+            "(?:0[0-9]|1[0-2])-" +
+            "(?:[0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]|[0-9][1-9][0-9]{2}|[1-9][0-9]{3})"; 
 
         public static void Run()
         {

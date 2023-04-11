@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Module4
@@ -14,14 +15,15 @@ namespace Module4
 
         private static string DoubleAllOccurances(string sentence, string occuranceString)
         {
-            var pattern = '[' + occuranceString + ']';
-            var stringBuilder = new StringBuilder(sentence);
-            var matches = Regex.Matches(sentence, pattern);
-            var charsAdded = 0;
-            foreach (Match match in matches)
+            var occuranceSet = occuranceString.ToHashSet();
+            var stringBuilder = new StringBuilder();
+            foreach (var symbol in sentence)
             {
-                stringBuilder.Insert(match.Index + charsAdded, match.Value);
-                charsAdded++;
+                stringBuilder.Append(symbol);
+                if (occuranceSet.Contains(symbol))
+                {
+                    stringBuilder.Append(symbol);
+                }
             }
             return stringBuilder.ToString();
         }

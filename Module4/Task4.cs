@@ -9,12 +9,12 @@ namespace Module4
         public static void Run() 
         {
             var text = "<b>Это</b> текст <i>с</i> <font color=\"red\">HTML</font> кодами";
-            Console.WriteLine(RemoveHTMLTags(text));
+            Console.WriteLine(ReplaceHTMLTagsWithUnderscore(text));
         }
 
-        private static string RemoveHTMLTags(string text) 
+        private static string ReplaceHTMLTagsWithUnderscore(string text) 
         {
-            return Regex.Replace(text, HTLMTagPattern, String.Empty);
+            return Regex.Replace(text, HTLMTagPattern, "_");
         }
     }
 }

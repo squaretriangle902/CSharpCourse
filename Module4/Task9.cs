@@ -4,48 +4,63 @@
     {
         #region Constants
         #region Messages
-        private const string consoleDateInputRequestMessage = "Enter date in format dd.mm.yyyy hh:mm:ss: ";
-        private const string consolIncorrectInputErrorMessage = "Incorrect input";
-        private const string commandsInfo = 
+        private const string ConsoleDateInputRequestMessage = "Enter date in format dd.mm.yyyy hh:mm:ss: ";
+        private const string ConsolIncorrectInputErrorMessage = "Incorrect input";
+        private const string CommandsInfo =
             "Commands: exit - close apllication; rollback - roll back changes to specified date time";
-        private const string trackModOnMessage = "Track mod: on";
-        private const string trackModOffMessage = "Track mod: off";
-        private const string incorrectCommandMessage = "Incorrect command";
-        private const string rollBackFailMessage = "Cannot roll back changes for: ";
-        private const string exitCommand = "exit";
-        private const string rollBackCommand = "rollback";
+        private const string TrackModOnMessage = "Track mod: on";
+        private const string TrackModOffMessage = "Track mod: off";
+        private const string IncorrectCommandMessage = "Incorrect command";
+        private const string ExitCommand = "exit";
+        private const string RollBackCommand = "rollback";
         #endregion
-        #region Directories, pathes
-        private const string dataPath = @"E:\Data";
-        private static readonly DirectoryInfo dataVersionsDirectory = new DirectoryInfo(@"E:\DataVersions");
+        #region Pathes
+        private const string DataPath = @"E:\Data";
+        private const string DataBackupsPath = @"E:\DataVersions";
+        private const string txtExtension = "*.txt";
         #endregion
+        #endregion
+        #region Pathes
+        private static readonly DirectoryInfo DataDirectory = new DirectoryInfo(DataPath);
+        private static readonly DirectoryInfo DataBackupsDirectory = new DirectoryInfo(DataBackupsPath);
         #endregion
 
         public static void Run()
         {
             FileSystemWatcher watcher = InitializeSystemWatcher();
-            Console.WriteLine(commandsInfo);
+            Console.WriteLine(CommandsInfo);
             StartConsoleDialog(watcher);
+        }
+
+        private static void CopyAllTxtFilesIncludingSubdirectories(DirectoryInfo sourceDirectory,
+                                                                   DirectoryInfo destinationDirectory)
+        {
+            foreach (var file in sourceDirectory.EnumerateFiles(txtExtension, SearchOption.AllDirectories))
+            {
+                if (file.Directory is DirectoryInfo)
+                {
+                    var relativePath = Path.GetRelativePath(sourceDirectory.FullName, file.Directory.FullName);
+                    file.CopyTo(Path.Combine(destinationDirectory.CreateSubdirectory(relativePath).FullName, file.Name),
+                                overwrite: true);
+                }
+            }
         }
 
         private static void StartConsoleDialog(FileSystemWatcher watcher)
         {
             while (true)
             {
-                Console.WriteLine(trackModOnMessage);
-                string? command = Console.ReadLine();
-                switch (command)
+                watcher.EnableRaisingEvents = true;
+                Console.WriteLine(TrackModOnMessage);
+                switch (Console.ReadLine())
                 {
-                    case null:
-                        Console.WriteLine(incorrectCommandMessage);
-                        continue;
-                    case exitCommand:
+                    case ExitCommand:
                         return;
-                    case rollBackCommand:
+                    case RollBackCommand:
                         RollBackConsoleCommand(watcher);
                         continue;
                     default:
-                        Console.WriteLine(incorrectCommandMessage);
+                        Console.WriteLine(IncorrectCommandMessage);
                         continue;
                 }
             }
@@ -53,86 +68,108 @@
 
         private static void RollBackConsoleCommand(FileSystemWatcher watcher)
         {
-            Console.WriteLine(trackModOffMessage);
-            ReadDateTimeUntilCorrect(consoleDateInputRequestMessage, consolIncorrectInputErrorMessage, out DateTime dateTime);
-            RollbackChanges(dateTime, watcher);
+            watcher.EnableRaisingEvents = false;
+            Console.WriteLine(TrackModOffMessage);
+            DateTime dateTime = ReadDateTimeUntilCorrect(ConsoleDateInputRequestMessage, ConsolIncorrectInputErrorMessage);
+            RollbackChanges(dateTime);
         }
 
         private static FileSystemWatcher InitializeSystemWatcher()
         {
-            var watcher = new FileSystemWatcher(dataPath, "*.txt");
+            var watcher = new FileSystemWatcher(DataPath, txtExtension);
             watcher.IncludeSubdirectories = true;
             watcher.EnableRaisingEvents = true;
             watcher.Changed += WatcherChanged;
             watcher.Created += WatcherCreated;
+            watcher.Deleted += WatcherDeleted;
+            watcher.Renamed += WatcherRenamed;
+            watcher.NotifyFilter = NotifyFilters.FileName;
             return watcher;
+        }
+
+        private static void WatcherRenamed(object sender, RenamedEventArgs e)
+        {
+            Console.WriteLine("File \"{0}\" was renamed", e.Name);
+            CreateDataBackup();
+        }
+
+        private static void WatcherDeleted(object sender, FileSystemEventArgs e)
+        {
+            Console.WriteLine("File \"{0}\" was deleted", e.Name);
+            CreateDataBackup();
         }
 
         private static void WatcherCreated(object sender, FileSystemEventArgs e)
         {
             Console.WriteLine("File \"{0}\" was created", e.Name);
-            CreateFileBackup(sender, e);
+            CreateDataBackup();
         }
 
         private static void WatcherChanged(object sender, FileSystemEventArgs e)
         {
             Console.WriteLine("File \"{0}\" was changed", e.Name);
-            CreateFileBackup(sender, e);
+            CreateDataBackup();
         }
 
-        private static void RollbackChanges(DateTime dateTime, FileSystemWatcher watcher)
+        private static void RollbackChanges(DateTime backupDateTime)
         {
-            watcher.EnableRaisingEvents = false;
-            foreach (var file in Directory.EnumerateFiles(dataPath))
+            foreach (var backupDirectory in DataBackupsDirectory.EnumerateDirectories())
             {
-                RollBackChanges(file, dateTime);
-            }
-            watcher.EnableRaisingEvents = true;
-        }
-
-        private static void CreateFileBackup(object sender, FileSystemEventArgs e)
-        {
-            var fileVersionsDirectory = 
-                dataVersionsDirectory.CreateSubdirectory(Path.GetFileNameWithoutExtension(e.FullPath));
-            File.Copy(e.FullPath, fileVersionsDirectory.FullName + @"\" + 
-                                  IDFromDate(DateTime.Now).ToString() + 
-                                  Path.GetExtension(e.FullPath));
-        }
-
-        private static void RollBackChanges(string filePath, DateTime backupDateTime)
-        {
-            var fileVersionsDirectoryPath = dataVersionsDirectory.FullName + @"\" +
-                Path.GetFileNameWithoutExtension(filePath);
-            try
-            {
-                foreach (var fileVersion in Directory.EnumerateFiles(fileVersionsDirectoryPath))
+                if (long.TryParse(backupDirectory.Name, out long fileID) && fileID >= IDFromTicks(backupDateTime))
                 {
-                    if (long.TryParse(Path.GetFileNameWithoutExtension(fileVersion), out long fileID) &&
-                        fileID >= IDFromDate(backupDateTime))
-                    {
-                        File.Copy(fileVersion, filePath, true);
-                        return;
-                    }
+                    DeleteAllUnbackupedTxtFiles(backupDirectory);
+                    CopyAllTxtFilesIncludingSubdirectories(backupDirectory, DataDirectory);
+                    return;
                 }
             }
-            catch (Exception)
+        }
+
+        private static void DeleteAllUnbackupedTxtFiles(DirectoryInfo backupDirectory)
+        {
+            HashSet<string> backupFilesRelativePathes = GetFilesRelativePathes(backupDirectory);
+            foreach (var file in DataDirectory.EnumerateFiles("*txt", SearchOption.AllDirectories))
             {
-                Console.WriteLine(rollBackFailMessage + filePath);
+                if (!backupFilesRelativePathes.Contains(Path.GetRelativePath(DataDirectory.FullName, file.FullName)))
+                {
+                    file.Delete();
+                }
             }
         }
 
-        private static long IDFromDate(DateTime dateTime)
+        private static HashSet<string> GetFilesRelativePathes(DirectoryInfo directory)
+        {
+            HashSet<string> filesRelativePathes = new HashSet<string>(directory.EnumerateFiles().Count());
+            foreach (var file in directory.EnumerateFiles(txtExtension, SearchOption.AllDirectories))
+            {
+                filesRelativePathes.Add(Path.GetRelativePath(directory.FullName, file.FullName));
+            }
+
+            return filesRelativePathes;
+        }
+
+        private static void CreateDataBackup()
+        {
+            CopyAllTxtFilesIncludingSubdirectories(DataDirectory,
+                DataBackupsDirectory.CreateSubdirectory(IDFromTicks(DateTime.Now).ToString()));
+        }
+
+        private static long IDFromTicks(DateTime dateTime)
         {
             return long.MaxValue - dateTime.Ticks;
         }
 
-        private static void ReadDateTimeUntilCorrect(string consoleInputRequestMessage, string consolErrorMessage,
-            out DateTime dateTime)
+        private static DateTime ReadDateTimeUntilCorrect(string consoleInputRequestMessage, string consolErrorMessage)
         {
-            while (!TryReadDateTime(consoleInputRequestMessage, consolErrorMessage, out dateTime)) ;
+            while (true)
+            {
+                if (TryReadDateTime(consoleInputRequestMessage, consolErrorMessage, out DateTime dateTime))
+                {
+                    return dateTime;
+                }
+            }
         }
 
-        private static bool TryReadDateTime(string consoleInputRequestMessage, string consolErrorMessage, 
+        private static bool TryReadDateTime(string consoleInputRequestMessage, string consolErrorMessage,
             out DateTime dateTime)
         {
             Console.Write(consoleInputRequestMessage);
