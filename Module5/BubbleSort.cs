@@ -33,30 +33,30 @@ namespace Module5
             }
         }
 
-        public static void Sort<T>(T[] items, Func<T, T, int> compare, Action action)
+        public static void Sort<T>(T[] items, Func<T, T, int> compare, Action iterationAction)
         {
             for (int i = items.Length - 2; i >= 2; i--)
             {
-                BubbleSortIteration<T>(items, i, compare, action);
+                BubbleSortIteration<T>(items, i, compare, iterationAction);
             }
         }
 
-        private static void BubbleSortIteration<T>(T[] items, int lastIndex, Func<T, T, int> compare, Action action)
+        private static void BubbleSortIteration<T>(T[] items, int lastIndex, Func<T, T, int> compare, Action iterationAction)
         {
             for (int i = 0; i <= lastIndex; i++)
             {
-                SwapWithNextIfGreater<T>(items, i, compare, action);
+                SwapWithNextIfGreater<T>(items, i, compare, iterationAction);
             }
         }
 
-        private static void SwapWithNextIfGreater<T>(T[] items, int index, Func<T, T, int> compare, Action action)
+        private static void SwapWithNextIfGreater<T>(T[] items, int index, Func<T, T, int> compare, Action iterationAction)
         {
             if (compare is not null && compare(items[index], items[index + 1]) > 0)
             {
                 (items[index], items[index + 1]) = (items[index + 1], items[index]);
-                if (action is not null)
+                if (iterationAction is not null)
                 {
-                    action();
+                    iterationAction();
                 }
             }
         }

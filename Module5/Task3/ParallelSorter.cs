@@ -2,13 +2,13 @@
 {
     public class ParallelSorter<T>
     {
-        private string threadName;
+        private string threadMessage;
         private Thread thread;
         public event EventHandler<EventArgs> ArrayIsSorted;
 
-        public ParallelSorter(T[] items, Func<T, T, int> compare, string threadName = "")
+        public ParallelSorter(T[] items, Func<T, T, int> compare, string threadMessage = "")
         {
-            this.threadName = threadName;
+            this.threadMessage = threadMessage;
             thread = new Thread(() => Sort(items, compare));
             ArrayIsSorted = delegate { };
         }
@@ -28,14 +28,14 @@
 
         private void Sort(T[] items, Func<T, T, int> compare)
         {
-            BubbleSort.Sort(items, compare, ThreadAction);
+            BubbleSort.Sort(items, compare, IterationAction);
             OnSortingIsCompleted();
         }
 
-        private void ThreadAction()
+        private void IterationAction()
         {
             Thread.Sleep(TimeSpan.FromMilliseconds(100));
-            Console.WriteLine(threadName);
+            Console.WriteLine(threadMessage);
         }
     }
 }

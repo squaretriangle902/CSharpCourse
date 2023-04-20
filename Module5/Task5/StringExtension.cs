@@ -4,7 +4,7 @@ namespace Module5.Task5
 {
     public static class StringExtension
     {
-        private const string intNumberPattern = "^-?[0-9]+$";
+        private const string intNumberPattern = "^[1-9][0-9]*$";
 
         public static bool IsInt(this string str)
         {
