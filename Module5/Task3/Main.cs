@@ -14,13 +14,18 @@
             sorter2.SortStartThread();
 
             await SortAsync(compare);
-            Console.WriteLine("Async sorted completed");
+            SortAsync(compare).GetAwaiter().GetResult();
         }
 
         private static async Task SortAsync(Func<int, int, int> compare)
         {
             int[] arrayCopy = CreateArrayCopy();
-            await Task.Run(() => BubbleSort.Sort(array, compare, () => Console.WriteLine("Async sort iteration completed")));
+            await Task.Run(() => BubbleSort.Sort(array, compare, () => 
+            {
+                Console.WriteLine("Async sort iteration completed");
+                Task.Delay(TimeSpan.FromMilliseconds(100));
+            }));
+            Console.WriteLine("Async sorted completed");
         }
 
         private static ParallelSorter<int> CreateParallelSorter(Func<int, int, int> compare, string name)
